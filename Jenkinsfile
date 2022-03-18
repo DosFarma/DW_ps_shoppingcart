@@ -57,6 +57,9 @@ pipeline { agent { kubernetes { inheritFrom 'php73' } }
 
 Recibes este correo bien porque has realizado el push/petición de integración o tienes cambios en el changeset procesado.
 El log de la tarea ejecutada en el archivo anexo. """, compressLog: true, recipientProviders: [buildUser(), developers()], subject: "[Jenkins][${currentBuild.currentResult}]: Job: ${env.JOB_NAME} build: ${env.BUILD_NUMBER}", to: 'informatica@dosfarma.com, fj.rubio@dosfarma.com'
+      office365ConnectorSend webhookUrl: "${env.OFFICE365_CONNECTOR_URL}",
+         message: "${env.JOB_NAME} build: ${env.BUILD_NUMBER}",
+         status: "${currentBuild.currentResult}"
     }
   }
 }
