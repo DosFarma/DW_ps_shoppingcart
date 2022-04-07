@@ -15,26 +15,28 @@ pipeline { agent { kubernetes { inheritFrom 'php73' } }
   stages {
     stage('Prepare') {
       steps {
-        container('composer') {
-          sh 'mkdir -p ${BUILD_ROOT}'
-          sh 'mkdir -p ${WEB_ROOT}'
-          sh 'mkdir -p ${TO_SHARED_ROOT}'
-          sh 'mkdir -p ${META_INF_ROOT}'
-          withCredentials([usernamePassword(credentialsId: 'satis-jenkins', passwordVariable: 'SATIS_JENKINS_PASSWORD', usernameVariable: 'SATIS_JENKINS_USERNAME')]) {
-            sh 'composer config --global http-basic.jenkins.dosfarma.com $SATIS_JENKINS_USERNAME $SATIS_JENKINS_PASSWORD'
-          }
-        }
         container('php') {
           sh 'apt-get -y update && apt-get install -y jq libicu-dev zlib1g  zlib1g-dev libzip-dev libpng-dev libjpeg-dev libwebp-dev libcurl4-openssl-dev libxml2 libxml2-dev'
           sh 'docker-php-ext-configure intl'
           sh 'docker-php-ext-install intl zip gd curl soap'
+          sh 'mkdir -p ${BUILD_ROOT}'
+          sh 'mkdir -p ${WEB_ROOT}'
+          sh 'mkdir -p ${TO_SHARED_ROOT}'
+          sh 'mkdir -p ${META_INF_ROOT}'
+          sh 'curl http://getcomposer.org/installer > composer-setup.php'
+          sh '''php -r "if (hash_file(\'sha384\', \'composer-setup.php\') === \'906a84df04cea2aa72f40b5f787e49f22d4c2f19492ac310e8cba5b96ac8b64115ac402c8cd292b8a03482574915d1a8\') { echo \'Installer verified\'; } else { echo \'Installer corrupt\'; unlink(\'composer-setup.php\'); } echo PHP_EOL;" '''
+          sh 'php composer-setup.php'
+          sh 'rm composer-setup.php'
+          withCredentials([usernamePassword(credentialsId: 'satis-jenkins', passwordVariable: 'SATIS_JENKINS_PASSWORD', usernameVariable: 'SATIS_JENKINS_USERNAME')]) {
+            sh 'php composer.phar config --global http-basic.jenkins.dosfarma.com $SATIS_JENKINS_USERNAME $SATIS_JENKINS_PASSWORD'
+          }
         }
       }
     }
     stage('Prepare (composer all deps)') {
       steps {
-        container('composer') {
-          sh 'composer install --no-ansi --no-interaction --dev'
+        container('php') {
+          sh 'php composer.phar install --no-ansi --no-interaction --dev'
         }
       }
     }
@@ -45,8 +47,8 @@ pipeline { agent { kubernetes { inheritFrom 'php73' } }
     }
     stage('Prepare (composer without dev)') {
       steps {
-        container('composer') {
-          sh 'composer install --no-dev --no-ansi --no-interaction --no-dev'
+        container('php') {
+          sh 'php composer.phar install --no-dev --no-ansi --no-interaction --no-dev'
         }
       }
     }
