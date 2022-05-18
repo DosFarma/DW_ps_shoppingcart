@@ -61,7 +61,7 @@ Recibes este correo bien porque has realizado el push/petición de integración 
 El log de la tarea ejecutada en el archivo anexo. """, compressLog: true, recipientProviders: [buildUser(), developers()], subject: "[Jenkins][${currentBuild.currentResult}]: Job: ${env.JOB_NAME} build: ${env.BUILD_NUMBER}", to: 'informatica@dosfarma.com, fj.rubio@dosfarma.com'
       withCredentials([string(credentialsId: 'office365-connector-url', variable: 'OFFICE365_URL')]) {
         office365ConnectorSend webhookUrl: "${OFFICE365_URL}",
-          message: "${env.JOB_NAME} build: ${env.BUILD_NUMBER}"
+          message: "${env.JOB_NAME} build: ${env.BUILD_NUMBER}",
           status: "${currentBuild.currentResult}"
       }
     }
