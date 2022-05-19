@@ -23,10 +23,11 @@ pipeline { agent { kubernetes { inheritFrom 'php73' } }
           sh 'mkdir -p ${WEB_ROOT}'
           sh 'mkdir -p ${TO_SHARED_ROOT}'
           sh 'mkdir -p ${META_INF_ROOT}'
-          sh 'curl http://getcomposer.org/installer > composer-setup.php'
-          sh '''php -r "if (hash_file(\'sha384\', \'composer-setup.php\') === \'906a84df04cea2aa72f40b5f787e49f22d4c2f19492ac310e8cba5b96ac8b64115ac402c8cd292b8a03482574915d1a8\') { echo \'Installer verified\'; } else { echo \'Installer corrupt\'; unlink(\'composer-setup.php\'); } echo PHP_EOL;" '''
+          sh 'curl https://composer.github.io/installer.sha384sum > installer.sha384sum'
+          sh 'curl https://getcomposer.org/installer > composer-setup.php'
+          sh 'sha384sum -c installer.sha384sum'
           sh 'php composer-setup.php'
-          sh 'rm composer-setup.php'
+          sh 'rm composer-setup.php installer.sha384sum'
           withCredentials([usernamePassword(credentialsId: 'satis-jenkins', passwordVariable: 'SATIS_JENKINS_PASSWORD', usernameVariable: 'SATIS_JENKINS_USERNAME')]) {
             sh 'php composer.phar config --global http-basic.jenkins.dosfarma.com $SATIS_JENKINS_USERNAME $SATIS_JENKINS_PASSWORD'
           }
@@ -60,7 +61,7 @@ pipeline { agent { kubernetes { inheritFrom 'php73' } }
 Recibes este correo bien porque has realizado el push/petición de integración o tienes cambios en el changeset procesado.
 El log de la tarea ejecutada en el archivo anexo. """, compressLog: true, recipientProviders: [buildUser(), developers()], subject: "[Jenkins][${currentBuild.currentResult}]: Job: ${env.JOB_NAME} build: ${env.BUILD_NUMBER}", to: 'informatica@dosfarma.com, fj.rubio@dosfarma.com'
       withCredentials([string(credentialsId: 'office365-connector-url', variable: 'OFFICE365_URL')]) {
-        office365ConnectorSend webhookUrl: "${OFFICE365_URL}",
+        office365ConnectorSend webhookUrl: env.OFFICE365_URL,
           message: "${env.JOB_NAME} build: ${env.BUILD_NUMBER}",
           status: "${currentBuild.currentResult}"
       }
