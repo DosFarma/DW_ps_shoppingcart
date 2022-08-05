@@ -26,7 +26,7 @@ pipeline { agent { kubernetes { inheritFrom 'php73' } }
           sh 'curl https://composer.github.io/installer.sha384sum > installer.sha384sum'
           sh 'curl https://getcomposer.org/installer > composer-setup.php'
           sh 'sha384sum -c installer.sha384sum'
-          sh 'php composer-setup.php'
+          sh 'php composer-setup.php --version=2.2.9'
           sh 'rm composer-setup.php installer.sha384sum'
           withCredentials([usernamePassword(credentialsId: 'satis-jenkins', passwordVariable: 'SATIS_JENKINS_PASSWORD', usernameVariable: 'SATIS_JENKINS_USERNAME')]) {
             sh 'php composer.phar config --global http-basic.jenkins.dosfarma.com $SATIS_JENKINS_USERNAME $SATIS_JENKINS_PASSWORD'
