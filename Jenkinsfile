@@ -1,6 +1,6 @@
 pipeline {
   // agent { kubernetes { inheritFrom 'php73' } }
-  agent { label 'docker-jnlp' }
+  agent { label 'docker-jnlp-php' }
 
   environment {
     GIT_SHORT_ID = sh(returnStdout: true, script: 'git describe --always').trim()
@@ -18,24 +18,24 @@ pipeline {
   stages {
     stage('Prepare') {
       steps {
-        sh 'apt-get -y update && apt-get install -y php php-intl php-zip php-gd php-curl php-soap php-xml php-xmlwriter jq zlib1g libxml2 curl'
+        // sh 'apt-get -y update && apt-get install -y php php-intl php-zip php-gd php-curl php-soap php-xml php-xmlwriter jq zlib1g libxml2 curl'
         sh 'mkdir -p ${BUILD_ROOT}'
         sh 'mkdir -p ${WEB_ROOT}'
         sh 'mkdir -p ${TO_SHARED_ROOT}'
         sh 'mkdir -p ${META_INF_ROOT}'
-        sh 'curl https://composer.github.io/installer.sha384sum > installer.sha384sum'
-        sh 'curl https://getcomposer.org/installer > composer-setup.php'
-        sh 'sha384sum -c installer.sha384sum'
-        sh 'php composer-setup.php --version=2.2.9'
-        sh 'rm composer-setup.php installer.sha384sum'
+        // sh 'curl https://composer.github.io/installer.sha384sum > installer.sha384sum'
+        // sh 'curl https://getcomposer.org/installer > composer-setup.php'
+        // sh 'sha384sum -c installer.sha384sum'
+        // sh 'php composer-setup.php --version=2.2.9'
+        // sh 'rm composer-setup.php installer.sha384sum'
         withCredentials([usernamePassword(credentialsId: 'satis-jenkins', passwordVariable: 'SATIS_JENKINS_PASSWORD', usernameVariable: 'SATIS_JENKINS_USERNAME')]) {
-          sh 'php composer.phar config --global http-basic.jenkins.dosfarma.com $SATIS_JENKINS_USERNAME $SATIS_JENKINS_PASSWORD'
+          sh 'php /home/jenkins/composer.phar config --global http-basic.jenkins.dosfarma.com $SATIS_JENKINS_USERNAME $SATIS_JENKINS_PASSWORD'
         }
       }
     }
     stage('Prepare (composer all deps)') {
       steps {
-        sh 'php composer.phar install --no-ansi --no-interaction --dev'
+        sh 'php /home/jenkins/composer.phar install --no-ansi --no-interaction --dev'
       }
     }
     stage('Tests') {
@@ -45,7 +45,7 @@ pipeline {
     }
     stage('Prepare (composer without dev)') {
       steps {
-        sh 'php composer.phar install --no-dev --no-ansi --no-interaction --no-dev'
+        sh 'php /home/jenkins/composer.phar install --no-dev --no-ansi --no-interaction --no-dev'
       }
     }
   }
